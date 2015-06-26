@@ -135,11 +135,12 @@ shinyServer(function(input, output, session) {
     plot<-ggplot(cm)+
       geom_line(aes_string(x=names(cm)[13+(i-7)*2],y=names(cm)[i]))+
       #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",cm[which(cm[,13+(i-7)*2]==ll),i]," to ",cm[which(cm[,13+(i-7)*2]==ul),i],sep=""))+
-      xlim(sum(is.na(cm[,13+(i-7)*2])),floor(length(cm[,13+(i-7)*2])*0.99))+
-      ylim(cm[order(cm[,i]),][ceiling(sum(is.na(cm[,13+(i-7)*2]))+(length(cm[,13+(i-7)*2])*input$XrangeML))],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])+
-      geom_abline(intercept=con, slope=grad,col="red")+
-      geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
-      geom_hline(yintercept = c(cm[which(cm[,13+(i-7)*2]==ll),i],cm[which(cm[,13+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )
+      ggtitle(paste(input$NerveM,"; Age ",input$AgeM[1]," to ",input$AgeM[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",cm[which(cm[,13+(i-7)*2]==ll),i]," to ",cm[which(cm[,13+(i-7)*2]==ul),i],sep=""))+
+        xlim(sum(is.na(cm[,13+(i-7)*2])),floor(length(cm[,13+(i-7)*2])*0.99))+
+        ylim(cm[order(cm[,i]),][ceiling(sum(is.na(cm[,12+(i-7)*2]))+(length(cm[,13+(i-7)*2])*input$XrangeML))+1,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])+
+        geom_abline(intercept=con, slope=grad,col="red")+
+        geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash")+
+        geom_hline(yintercept = c(cm[which(cm[,13+(i-7)*2]==ll),i],cm[which(cm[,13+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )
     return(plot)
   })
   
@@ -165,7 +166,7 @@ shinyServer(function(input, output, session) {
     ggplot(cm)+
       stat_ecdf(aes_string(x=names(cm)[i]),col=2)+
       geom_vline(xintercept = c(cm[which(cm[,13+(i-7)*2]==ll),i],cm[which(cm[,13+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(cm[order(cm[,i]),][sum(is.na(cm[,13+(i-7)*2]))+2,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM)-2,i])
+      xlim(cm[order(cm[,i]),][ceiling(sum(is.na(cm[,12+(i-7)*2]))+(length(cm[,13+(i-7)*2])*input$XrangeML))+1,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])
     
   })
   
@@ -181,7 +182,7 @@ shinyServer(function(input, output, session) {
         args=with(cm, c(mean = mean(eval(parse(text=names(cm)[i]))), sd = sd(eval(parse(text=names(cm)[i]))))),
         colour="red")+
       geom_vline(xintercept = c(cm[which(cm[,13+(i-7)*2]==ll),i],cm[which(cm[,13+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(cm[order(cm[,i]),][sum(is.na(cm[,13+(i-7)*2]))+2,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])
+      xlim(cm[order(cm[,i]),][ceiling(sum(is.na(cm[,12+(i-7)*2]))+(length(cm[,13+(i-7)*2])*input$XrangeML))+1,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])
   })
   
   ###### SNAP code follows ###
@@ -269,12 +270,13 @@ shinyServer(function(input, output, session) {
     grad<-(sn[order(sn[,i]),][ul,i]-sn[order(sn[,i]),][ll,i])/(ul-ll)
     plot<-ggplot(sn)+
       geom_line(aes_string(x=names(sn)[10+(i-7)*2],y=names(sn)[i]))+
-      #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,10+(i-7)*2]==ll),i]," to ",sn[which(sn[,10+(i-7)*2]==ul),i],sep=""))+
+      #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,13+(i-7)*2]==ll),i]," to ",sn[which(sn[,13+(i-6)*2]==ul),i],sep=""))+
+      ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,10+(i-7)*2]==ll),i]," to ",sn[which(sn[,10+(i-7)*2]==ul),i],sep=""))+
       xlim(sum(is.na(sn[,10+(i-7)*2])),floor(length(sn[,10+(i-7)*2])*0.99))+
       #ylim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS)-2,i])+
-      ylim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,10+(i-7)*2]))+(length(sn[,10+(i-7)*2])*input$XrangeSL)),i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])+
+      ylim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,10+(i-7)*2]))+(length(sn[,10+(i-7)*2])*input$XrangeSL))+1,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])+
       geom_abline(intercept=con, slope=grad,col="red")+
-      geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
+      geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash")+
       geom_hline(yintercept = c(sn[which(sn[,10+(i-7)*2]==ll),i],sn[which(sn[,10+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )
     return(plot) 
   })
@@ -300,7 +302,7 @@ shinyServer(function(input, output, session) {
     ggplot(sn)+
       stat_ecdf(aes_string(x=names(sn)[i]),col=2)+
       geom_vline(xintercept = c(sn[which(sn[,10+(i-7)*2]==ll),i],sn[which(sn[,10+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS)-2,i])
+      xlim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,10+(i-7)*2]))+(length(sn[,10+(i-7)*2])*input$XrangeSL))+1,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])
     
   })
   
@@ -316,7 +318,7 @@ shinyServer(function(input, output, session) {
         args=with(sn, c(mean = mean(eval(parse(text=names(sn)[i]))), sd = sd(eval(parse(text=names(sn)[i]))))),
         colour="red")+
       geom_vline(xintercept = c(sn[which(sn[,10+(i-7)*2]==ll),i],sn[which(sn[,10+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])
+      xlim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,10+(i-7)*2]))+(length(sn[,10+(i-7)*2])*input$XrangeSL))+1,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])
   })
   
   
@@ -403,9 +405,9 @@ shinyServer(function(input, output, session) {
       ggtitle(paste(input$Muscle,"; Age ",input$Age[1]," to ",input$Age[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",ta[which(ta[,13+(i-6)*2]==ll),i]," to ",ta[which(ta[,13+(i-6)*2]==ul),i],sep=""))+
       xlim(sum(is.na(ta[,13+(i-6)*2])),floor(length(ta[,13+(i-6)*2])*0.99))+
       #ylim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
-      ylim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL)),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
+      ylim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL))+1,i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
       geom_abline(intercept=con, slope=grad,col="red")+
-      geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
+      geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash")+
       geom_hline(yintercept = c(ta[which(ta[,13+(i-6)*2]==ll),i],ta[which(ta[,13+(i-6)*2]==ul),i]),colour="green", linetype = "longdash" )
     return(plot) 
   })
