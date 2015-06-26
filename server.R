@@ -70,8 +70,17 @@ shinyServer(function(input, output, session) {
     return(cmaps)
   })
   
-  dataInputCMAP1<-reactive({
+  dataInputCMAPlog<-reactive({
     cmaps<-dataInputCMAP()
+    cmaps[,8:13]<-log(cmaps[,8:13])
+    for(i in 8:13){
+      cmaps[which(cmaps[,i]==-Inf),i]<-0
+    }
+    return(cmaps)
+  })
+  
+  dataInputCMAP1<-reactive({
+    if (input$logM) {cmaps<-dataInputCMAPlog()} else {cmaps<-dataInputCMAP()}
     cm<-cmaps[(cmaps$Age>(input$AgeM[1]*365)&cmaps$Age<(input$AgeM[2]*365)&cmaps$Nerve==input$NerveM),] #select subgroup of age and muscle
     #cm<-cmaps[(cmaps$Age>(2*365)&cmaps$Age<(6*365)&cmaps$Nerve=="Medianus Motor"),] #select subgroup of age and muscle
     
@@ -127,11 +136,11 @@ shinyServer(function(input, output, session) {
       geom_line(aes_string(x=names(cm)[13+(i-7)*2],y=names(cm)[i]))+
       #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",cm[which(cm[,13+(i-7)*2]==ll),i]," to ",cm[which(cm[,13+(i-7)*2]==ul),i],sep=""))+
       xlim(sum(is.na(cm[,13+(i-7)*2])),floor(length(cm[,13+(i-7)*2])*0.99))+
-      ylim(cm[order(cm[,i]),][sum(is.na(cm[,13+(i-7)*2]))+2,i],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM)-2,i])+
+      ylim(cm[order(cm[,i]),][ceiling(sum(is.na(cm[,13+(i-7)*2]))+(length(cm[,13+(i-7)*2])*input$XrangeML))],cm[order(cm[,i]),][floor(length(cm[,13+(i-7)*2])*input$XrangeM),i])+
       geom_abline(intercept=con, slope=grad,col="red")+
       geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
       geom_hline(yintercept = c(cm[which(cm[,13+(i-7)*2]==ll),i],cm[which(cm[,13+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )
-    return(plot) 
+    return(plot)
   })
   
   output$diffPlotM<- renderPlot({
@@ -140,11 +149,12 @@ shinyServer(function(input, output, session) {
     ul<-input$LimitM[2]
     ll<-input$LimitM[1]
     nn<-(floor(length(cm[,13+(i-7)*2])*0.99)-sum(is.na(cm[,13+(i-7)*2])))
-    return(ggplot(cm)+
-             geom_point(aes_string(x=names(cm)[13+(i-7)*2],y=names(cm)[12+(i-7)*2]),col=2)+
-             xlim(sum(is.na(cm[,13+(i-7)*2])),floor(length(cm[,13+(i-7)*2])*0.99))+
-             ylim(min(cm[,12+(i-7)*2],na.rm=T),max(cm[order(cm[,12+(i-7)*2]),][1:floor(length(cm[,12+(i-7)*2])*input$YrangeM),12+(i-7)*2]))+
-             geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash"))
+    plot<-ggplot(cm)+
+      geom_point(aes_string(x=names(cm)[13+(i-7)*2],y=names(cm)[12+(i-7)*2]),col=2)+
+      xlim(sum(is.na(cm[,13+(i-7)*2])),floor(length(cm[,13+(i-7)*2])*0.99))+
+      ylim(min(cm[,12+(i-7)*2],na.rm=T),max(cm[order(cm[,12+(i-7)*2]),][1:floor(length(cm[,12+(i-7)*2])*input$YrangeM)-1,12+(i-7)*2]))+
+      geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash")
+    return(plot)
   })
   
   output$normPlotM<-renderPlot({
@@ -204,8 +214,17 @@ shinyServer(function(input, output, session) {
     return(snaps)
   })
   
-  dataInputSNAP1<-reactive({
+  dataInputSNAPlog<-reactive({
     snaps<-dataInputSNAP()
+    snaps[,8:10]<-log(snaps[,8:10])
+    for(i in 8:10){
+      snaps[which(snaps[,i]==-Inf),i]<-0
+    }
+    return(snaps)
+  })
+  
+  dataInputSNAP1<-reactive({
+    if (input$logS) {snaps<-dataInputSNAPlog()} else {snaps<-dataInputSNAP()}
     sn<-snaps[(snaps$Age>(input$AgeS[1]*365)&snaps$Age<(input$AgeS[2]*365)&snaps$Nerve==input$NerveS),] #select subgroup of age and muscle
     for (i in 8:10){
       # i<-7
@@ -252,7 +271,8 @@ shinyServer(function(input, output, session) {
       geom_line(aes_string(x=names(sn)[10+(i-7)*2],y=names(sn)[i]))+
       #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,10+(i-7)*2]==ll),i]," to ",sn[which(sn[,10+(i-7)*2]==ul),i],sep=""))+
       xlim(sum(is.na(sn[,10+(i-7)*2])),floor(length(sn[,10+(i-7)*2])*0.99))+
-      ylim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS)-2,i])+
+      #ylim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS)-2,i])+
+      ylim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,10+(i-7)*2]))+(length(sn[,10+(i-7)*2])*input$XrangeSL)),i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS),i])+
       geom_abline(intercept=con, slope=grad,col="red")+
       geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
       geom_hline(yintercept = c(sn[which(sn[,10+(i-7)*2]==ll),i],sn[which(sn[,10+(i-7)*2]==ul),i]),colour="green", linetype = "longdash" )
@@ -268,7 +288,7 @@ shinyServer(function(input, output, session) {
     return(ggplot(sn)+
              geom_point(aes_string(x=names(sn)[10+(i-7)*2],y=names(sn)[9+(i-7)*2]),col=2)+
              xlim(sum(is.na(sn[,10+(i-7)*2])),floor(length(sn[,10+(i-7)*2])*0.99))+
-             ylim(min(sn[,9+(i-7)*2],na.rm=T),max(sn[order(sn[,9+(i-7)*2]),][1:floor(length(sn[,9+(i-7)*2])*input$YrangeS),9+(i-7)*2]))+
+             ylim(min(sn[,9+(i-7)*2],na.rm=T),max(sn[order(sn[,9+(i-7)*2]),][1:floor(length(sn[,9+(i-7)*2])*input$YrangeS)-1,9+(i-7)*2]))+
              geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash"))
   })
   
@@ -325,8 +345,18 @@ shinyServer(function(input, output, session) {
     return(mups)
   })
   
+  dataInputlog<-reactive({
+    mups<-dataInput()
+    mups[,7:13]<-log(mups[,7:13])
+    for(i in 7:13){
+      mups[which(mups[,i]==-Inf),i]<-0
+    }
+    return(mups)
+  })
+ 
   dataInput1<-reactive({
     mups<-dataInput()
+    if (input$logE) {mups<-dataInputlog()} else {mups<-dataInput()}
     ta<-mups[(mups$Age>(input$Age[1]*365)&mups$Age<(input$Age[2]*365)&mups$Muscle==input$Muscle),] #select subgroup of age and muscle
     for (i in 7:13){
       # i<-7
@@ -372,7 +402,8 @@ shinyServer(function(input, output, session) {
       geom_line(aes_string(x=names(ta)[13+(i-6)*2],y=names(ta)[i]))+
       ggtitle(paste(input$Muscle,"; Age ",input$Age[1]," to ",input$Age[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",ta[which(ta[,13+(i-6)*2]==ll),i]," to ",ta[which(ta[,13+(i-6)*2]==ul),i],sep=""))+
       xlim(sum(is.na(ta[,13+(i-6)*2])),floor(length(ta[,13+(i-6)*2])*0.99))+
-      ylim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
+      #ylim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
+      ylim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL)),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])+
       geom_abline(intercept=con, slope=grad,col="red")+
       geom_vline(xintercept = c(ll,ul), colour="green", linetype = "longdash")+
       geom_hline(yintercept = c(ta[which(ta[,13+(i-6)*2]==ll),i],ta[which(ta[,13+(i-6)*2]==ul),i]),colour="green", linetype = "longdash" )
@@ -388,7 +419,7 @@ shinyServer(function(input, output, session) {
     return(ggplot(ta)+
              geom_point(aes_string(x=names(ta)[13+(i-6)*2],y=names(ta)[12+(i-6)*2]),col=2)+
              xlim(sum(is.na(ta[,13+(i-6)*2])),floor(length(ta[,13+(i-6)*2])*0.99))+
-             ylim(min(ta[,12+(i-6)*2],na.rm=T),max(ta[order(ta[,12+(i-6)*2]),][1:floor(length(ta[,12+(i-6)*2])*input$Yrange),12+(i-6)*2]))+
+             ylim(min(ta[,12+(i-6)*2],na.rm=T),max(ta[order(ta[,12+(i-6)*2]),][1:floor(length(ta[,12+(i-6)*2])*input$Yrange)-1,12+(i-6)*2]))+
              geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash"))
   })
   
@@ -400,8 +431,8 @@ shinyServer(function(input, output, session) {
     ggplot(ta)+
       stat_ecdf(aes_string(x=names(ta)[i]),col=2)+
       geom_vline(xintercept = c(ta[which(ta[,13+(i-6)*2]==ll),i],ta[which(ta[,13+(i-6)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*0.99),i])
-    
+      #xlim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*0.99),i])
+      xlim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL)),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])
   })
   
   output$normPlot2<-renderPlot({
@@ -416,8 +447,9 @@ shinyServer(function(input, output, session) {
         args=with(ta, c(mean = mean(eval(parse(text=names(ta)[i]))), sd = sd(eval(parse(text=names(ta)[i]))))),
         colour="red")+
       geom_vline(xintercept = c(ta[which(ta[,13+(i-6)*2]==ll),i],ta[which(ta[,13+(i-6)*2]==ul),i]),colour="green", linetype = "longdash" )+
-      xlim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*0.99),i])
-  })
+      #xlim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*0.99),i])
+      xlim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL)),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])
+       })
   
   output$currentTime <- renderText({
     invalidateLater(1000, session)
