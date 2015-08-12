@@ -12,7 +12,22 @@ library(plyr)
 library(shiny)
 
 
+
+
 shinyServer(function(input, output, session) {
+  
+#   resultstable<-data.frame(
+#     Modality=factor("EMG", levels=c("EMG","SNAP","CMAP")),
+#     Measure=as.character("Dur"),
+#     AgeLower=1,
+#     AgeUpper=1,
+#     Mean=1,
+#     Variance=1,
+#     SD=1,
+#     LowerSel=1,
+#     UpperSel=1
+#   )
+  
   ##### Data directory summary files ###
   output$dataSum<-renderTable({
     #      motor<-list.files(path="/Users/adam/Dropbox/Research/Matthew Pitt/enorms",full.names = F)[grep("CMAP",list.files("/Users/adam/Dropbox/Research/Matthew Pitt/enorms"))]
@@ -31,6 +46,8 @@ shinyServer(function(input, output, session) {
     )
     )
   })
+  
+  output$resultstabl<-renderTable({resultstable})
   
   ##### CMAP code follows ###
   dataInputCMAP<-reactive({
@@ -451,6 +468,9 @@ shinyServer(function(input, output, session) {
       #xlim(ta[order(ta[,i]),][sum(is.na(ta[,13+(i-6)*2])),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*0.99),i])
       xlim(ta[order(ta[,i]),][ceiling(sum(is.na(ta[,13+(i-6)*2]))+(length(ta[,13+(i-6)*2])*input$XrangeL)),i],ta[order(ta[,i]),][floor(length(ta[,13+(i-6)*2])*input$Xrange),i])
        })
+  
+  
+  #####
   
   output$currentTime <- renderText({
     invalidateLater(1000, session)
