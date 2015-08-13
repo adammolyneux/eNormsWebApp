@@ -82,7 +82,11 @@ shinyUI(
                                        plotOutput("difPlot")),
                               tabPanel("Distribution",
                                        plotOutput("normPlot"),
-                                       plotOutput("normPlot2"))
+                                       plotOutput("normPlot2")),
+                              tabPanel("Stats",
+                                       tableOutput("statTable")),
+                              tabPanel("RawData",
+                                       tableOutput("analyTable"))
                             )
                           )
                         ))),
@@ -136,7 +140,11 @@ shinyUI(
                                        plotOutput("diffPlotS")),
                               tabPanel("Distribution",
                                        plotOutput("normPlotS"),
-                                       plotOutput("normPlot2S"))
+                                       plotOutput("normPlot2S")),
+                              tabPanel("Stats",
+                                       tableOutput("statTableS")),
+                              tabPanel("RawData",
+                                       tableOutput("analyTableS"))
                             )
                           )
                         ))),
@@ -189,7 +197,11 @@ shinyUI(
                                        plotOutput("diffPlotM")),
                               tabPanel("Distribution",
                                        plotOutput("normPlotM"),
-                                       plotOutput("normPlot2M"))
+                                       plotOutput("normPlot2M")),
+                              tabPanel("Stats",
+                                       tableOutput("statTableM")),
+                              tabPanel("RawData",
+                                       tableOutput("analyTableM"))
                             )
                           )
                         )))
