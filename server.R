@@ -38,9 +38,11 @@ shinyServer(function(input, output, session) {
     #      sensory<-list.files(path="/Users/adam/Dropbox/Research/Matthew Pitt/enorms",full.names = F)[grep("SNAP",list.files("/Users/adam/Dropbox/Research/Matthew Pitt/enorms"))]
     #      EMG<-list.files(path="/Users/adam/Dropbox/Research/Matthew Pitt/enorms",full.names = F)[grep("EMG.xls",list.files("/Users/adam/Dropbox/Research/Matthew Pitt/enorms"))]
     #      
-    motor<-list.files(path=input$path,full.names = F)[grep(input$cmapstr,list.files(input$path))]
-    sensory<-list.files(path=input$path,full.names = F)[grep(input$sensstr,list.files(input$path))]
-    EMG<-list.files(path=input$path,full.names = F)[grep(input$emgstr,list.files(input$path))]
+    query<-parseQueryString(session$clientData$url_search)
+    fullPath<-paste(input$path, ifelse(is.null(query$id), '', query$id), sep='/')
+    motor<-list.files(path=fullPath,full.names = F)[grep(input$cmapstr,list.files(fullPath))]
+    sensory<-list.files(path=fullPath,full.names = F)[grep(input$sensstr,list.files(fullPath))]
+    EMG<-list.files(path=fullPath,full.names = F)[grep(input$emgstr,list.files(fullPath))]
     ma<-max(c(length(motor),length(sensory),length(EMG)))
     
     return(data.frame(
@@ -56,20 +58,31 @@ shinyServer(function(input, output, session) {
   
   ##### EMG code follows ###
   dataInput<-reactive({
-    path<-input$path
+    query<-parseQueryString(session$clientData$url_search)
+    fullPath<-paste(input$path, ifelse(is.null(query$id), '', query$id), sep='/')
+    path<-fullPath
     ext<-input$emgstr
     #path<-"/Users/adam/Dropbox/Research/Matthew Pitt/enorms"
     #path<-"N:/EMG"
     #if(path=="/Users/adam/Dropbox/Research/Matthew Pitt/enorms") ext<-"EMG.xls"
     #if(path=="N:/EMG") ext<-"EMGMUP"
     flsEMG<-list.files(path=path,full.names = T)[grep(ext,list.files(path))]
-    mups<-head(readWorksheet(loadWorkbook(flsEMG[1],create=T),sheet = "MUP"),1)[-1,]
+    #mups<-head(readWorksheet(loadWorkbook(flsEMG[1],create=T),sheet = "MUP"),1)[-1,]
+    mups<-read.csv(flsEMG[1])[0,]
     for (i in 1:length(flsEMG)){
-      mups<-rbind(mups,readWorksheet(loadWorkbook(flsEMG[i],create=T),sheet = "MUP"))
+      #mups<-rbind(mups,readWorksheet(loadWorkbook(flsEMG[i],create=T),sheet = "MUP"))
+      mups<-rbind(mups,read.csv(flsEMG[i], colClasses=c(
+        HospIP="character", TestDate="character", Gender="factor", 
+        "Age..Days."="numeric",
+        Muscle="factor", Side="factor",
+        simpleAmp="numeric", simpleDur="numeric",
+        polyAmp="numeric", polyDur="numeric",
+        meanAmp="numeric", meanDur="numeric",
+        "% Poly"="numeric")))
     } ; mups<-mups[!duplicated(mups),]
     rm(list=c("i","flsEMG","path","ext"))
     mups[mups$Muscle=="Genioglossus",]$Muscle<-"Glossus"
-    mups[,2]<-as.Date(mups[,2]); mups[,3]<-as.factor(mups[,3]); mups[,4]<-as.numeric(mups[,4]); mups[,5]<-as.factor(mups[,5])
+    mups[,2]<-as.Date(mups[,2], "%m/%d/%Y"); mups[,3]<-as.factor(mups[,3]); mups[,4]<-as.numeric(mups[,4]); mups[,5]<-as.factor(mups[,5])
     mups[,6]<-as.factor(mups[,6]);mups[,7]<-as.numeric(mups[,7]);mups[,8]<-as.numeric(mups[,8])
     mups[,9]<-as.numeric(mups[,9]);mups[,10]<-as.numeric(mups[,10]);mups[,11]<-as.numeric(mups[,11]);mups[,12]<-as.numeric(mups[,12])
     mups[,13]<-as.numeric(mups[,13])
@@ -223,7 +236,10 @@ shinyServer(function(input, output, session) {
   ###### SNAP code follows ###
   dataInputSNAP<-reactive({
     #Set path for files and a term specific for SNAPs in the filename
-    path<-input$path
+    
+    query<-parseQueryString(session$clientData$url_search)
+    fullPath<-paste(input$path, ifelse(is.null(query$id), '', query$id), sep='/')
+    path<-fullPath
     extS<-input$sensstr
     #path<-"/Users/adam/Dropbox/Research/Matthew Pitt/enorms";extS<-"SNAP"
     
@@ -232,15 +248,22 @@ shinyServer(function(input, output, session) {
     flsSNAP<-list.files(path=path,full.names = T)[grep(extS,list.files(path))]
     
     #Create and empty data frame ready to put the file data in, then load in the xls data
-    snaps<-head(readWorksheet(loadWorkbook(flsSNAP[1],create=T),sheet=1),1)[-1,]
+    # snaps<-head(readWorksheet(loadWorkbook(flsSNAP[1],create=T),sheet=1),1)[-1,]
+    snaps<-read.csv(flsSNAP[1])[0,]
     for (i in 1:length(flsSNAP)){
-      snaps<-rbind(snaps,readWorksheet(loadWorkbook(flsSNAP[i],create=T),sheet = 1))
+      #snaps<-rbind(snaps,readWorksheet(loadWorkbook(flsSNAP[i],create=T),sheet = 1))
+      snaps<-rbind(snaps,read.csv(flsSNAP[i], colClasses=c(
+        HospIP="character", TestDate="character", Gender="factor", 
+        "Age..Days."="numeric", "Age..years."="numeric",
+        Nerve="factor", Side="factor",
+        Onset="numeric", Amp="numeric", CV="numeric")))
     } ; snaps<-snaps[!duplicated(snaps),]
     rm(list=c("i","flsSNAP","path","extS"))
     
     #Clean up the data frame
     names(snaps)<-c("HospID","TestDate","Gender","Age","AgeYears","Nerve","Side","Onset","Amp","CV")
-    snaps[,2]<-as.Date(snaps[,2]) 
+    snaps[,2]<-as.Date(snaps[,2], "%m/%d/%Y") 
+    
     snaps[,3]<-as.factor(snaps[,3]); snaps[,6]<-as.factor(snaps[,6])
     snaps[,7]<-as.factor(snaps[,7])
     snaps[which(nchar(snaps[,9])>4),9]<-substr( snaps[which(nchar(snaps[,9])>4),9],1,4)
@@ -396,7 +419,9 @@ shinyServer(function(input, output, session) {
   ##### CMAP code follows ###
   dataInputCMAP<-reactive({
     #Set path for files and a term specific for SNAPs in the filename
-    path<-input$path
+    query<-parseQueryString(session$clientData$url_search)
+    fullPath<-paste(input$path, ifelse(is.null(query$id), '', query$id), sep='/')
+    path<-fullPath
     extM<-input$cmapstr
     #path<-"/Users/adam/Dropbox/Research/Matthew Pitt/enorms";extM<-"CMAP"
     
@@ -404,15 +429,20 @@ shinyServer(function(input, output, session) {
     flsCMAP<-list.files(path=path,full.names = T)[grep(extM,list.files(path))]
     
     #Create and empty data frame ready to put the file data in, then load in the xls data
-    cmaps<-head(readWorksheet(loadWorkbook(flsCMAP[1],create=T),sheet=1),1)[-1,]
+    cmaps<-read.csv(flsCMAP[1])[0,]
     for (i in 1:length(flsCMAP)){
-      cmaps<-rbind(cmaps,readWorksheet(loadWorkbook(flsCMAP[i],create=T),sheet = 1))
+      cmaps<-rbind(cmaps,read.csv(flsCMAP[i], colClasses=c(
+        HospIP="character", TestDate="Date", Gender="factor", 
+        "Age..Days."="numeric", "Age..years."="numeric",
+        Nerve="factor", Site="factor", Side="factor",
+        Onset="numeric", Amp="numeric", CV="numeric",
+        NegDur="numeric", Area="numeric", Latency="numeric")))
     } ; cmaps<-cmaps[!duplicated(cmaps),]; cmaps<-cmaps[,-7]
     rm(list=c("i","flsCMAP","path","extM"))
     
     #Clean up the data frame
     names(cmaps)<-c("HospID","TestDate","Gender","Age","AgeYears","Nerve","Side","Onset","Amp","CV","NegDur","Area","Latency")
-    cmaps[,2]<-as.Date(cmaps[,2]) 
+    cmaps[,2]<-as.Date(cmaps[,2], "%m/%d/%Y") 
     cmaps[,3]<-as.factor(cmaps[,3]); cmaps[,6]<-as.factor(cmaps[,6])
     cmaps[,7]<-as.factor(cmaps[,7])
     cmaps[which(nchar(cmaps[,8])>4),8]<-substr( cmaps[which(nchar(cmaps[,8])>4),8],1,4)
