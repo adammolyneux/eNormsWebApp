@@ -21,10 +21,16 @@ shinyUI(
                             textInput("sensstr", label = "Enter text specific for sensory files:", 
                                       value = "SNAP"),
                             textInput("cmapstr", label = "Enter text specific for motor files:", 
-                                      value = "CMAP")
-                          ),
+                                      value = "CMAP"),
+                            textInput("usrstr", label = "Enter text specific for uploaded files:", 
+                                      value = "USER"),
+                            fileInput('file1', 'Choose File', multiple=T,
+                                      accept='.xlsx')
+  
+                             ),
                           mainPanel(
-                            h6(tableOutput("dataSum"))
+                            h6(tableOutput("dataSum")),
+                            tableOutput("udataSum")
                           )
                         )
                       )),
@@ -202,6 +208,56 @@ shinyUI(
                                        tableOutput("statTableM")),
                               tabPanel("RawData",
                                        tableOutput("analyTableM"))
+                            )
+                          )
+                        ))),
+             
+             ### new stuff
+             tabPanel("User Data",
+                      fluidPage(
+                        
+                        # Sidebar with a slider input for number of bins
+                        sidebarLayout(
+                          sidebarPanel(
+                            helpText("Select subgroup of data to anaylse."),
+                            checkboxInput("agedayU","Age in days",TRUE),
+                            uiOutput("usrContr2"),
+                            sliderInput("XrangeU",
+                                        "Y axis upper limit for top plot:",
+                                        min=0.9,
+                                        max=1,
+                                        value=0.99),
+                            sliderInput("XrangeUL",
+                                        "Y axis lower limit for top plot:",
+                                        min=0,
+                                        max=0.2,
+                                        value=0.01),
+                            sliderInput("YrangeU",
+                                        "Y axis upper limit for bottom plot:",
+                                        min=0.9,
+                                        max=1,
+                                        value=0.99),
+                            checkboxInput("logU", "Plot as log", FALSE),
+                            uiOutput("usrContr1"),
+                            uiOutput("usrContr")
+                            
+                          ), 
+                          # Show a plot of the generated distribution
+                          mainPanel(
+                            tabsetPanel(
+                              tabPanel("Summary",
+                                       tableOutput("sumTableU"),
+                                       tableOutput("sumTableU2")),
+                              tabPanel("Ordered plots",
+                                       plotOutput("cumPlotU"),
+                                       plotOutput("diffPlotU")),
+                              tabPanel("Distribution",
+                                       plotOutput("normPlotU"),
+                                       plotOutput("normPlot2U")),
+                              tabPanel("Stats",
+                                       tableOutput("statTableU")),
+                              tabPanel("RawData",
+                                       tableOutput("analyTableU"))
                             )
                           )
                         )))

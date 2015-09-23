@@ -41,12 +41,14 @@ shinyServer(function(input, output, session) {
     motor<-list.files(path=input$path,full.names = F)[grep(input$cmapstr,list.files(input$path))]
     sensory<-list.files(path=input$path,full.names = F)[grep(input$sensstr,list.files(input$path))]
     EMG<-list.files(path=input$path,full.names = F)[grep(input$emgstr,list.files(input$path))]
-    ma<-max(c(length(motor),length(sensory),length(EMG)))
+    usr<-list.files(path=input$path,full.names = F)[grep(input$usrstr,list.files(input$path))]
+    ma<-max(c(length(motor),length(sensory),length(EMG),length(usr)))
     
     return(data.frame(
       EMG=c(EMG,rep(" ",ma-length(EMG))),
       Sensory=c(sensory,rep(" ",ma-length(sensory))),
-      Motor=c(motor,rep(" ",ma-length(motor)))
+      Motor=c(motor,rep(" ",ma-length(motor))),
+      User=c(usr,rep(" ",ma-length(usr)))
     )
     )
   })
@@ -90,7 +92,7 @@ shinyServer(function(input, output, session) {
   dataInput1<-reactive({
     mups<-dataInput()
     if (input$logE) {mups<-dataInputlog()} else {mups<-dataInput()}
-    ta<-mups[(mups$Age>(input$Age[1]*365)&mups$Age<(input$Age[2]*365)&mups$Muscle==input$Muscle),] #select subgroup of age and muscle
+    ta<-mups[(mups$Age>(input$Age[1]*365.25)&mups$Age<(input$Age[2]*365.25)&mups$Muscle==input$Muscle),] #select subgroup of age and muscle
     for (i in 7:13){
       # i<-7
       ta<-ta[order(ta[,i]),]
@@ -105,8 +107,8 @@ shinyServer(function(input, output, session) {
   output$sumTable <- renderTable({
     mups<-dataInput()
     nam<-names(mups)
-    ddply(mups[(mups$Age>input$Age[1]*365 & mups$Age<input$Age[2]*365),c(5,7:13)],~Muscle,here(summarise),Total=length(get(nam[7])),SA=length((which(get(nam[7])>0.001) )),SD=length(which(get(nam[8])>0)),PA=length(which(get(nam[9])>0)),PD=length(which(get(nam[10])>0)),MA=length(which(get(nam[11])>0)),MD=length(which(get(nam[12])>0)),Pol=length(which(get(nam[13])>0)))
-    #ddply(mups[(mups$Age>input$Age[1]*365 & mups$Age<input$Age[2]*365),c(5,7:13)],~Muscle,summarize,Total=length(get(paste(names(mups[7])))),SA=length(which(get(paste(names(mups[7])))>0)),SD=length(which(get(paste(names(mups[8])))>0)),PA=length(which(get(paste(names(mups[9])))>0)),PD=length(which(get(paste(names(mups[10])))>0)),MA=length(which(get(paste(names(mups[11])))>0)),MD=length(which(get(paste(names(mups[12])))>0)),Pol=length(which(get(paste(names(mups[13])))>0)))
+    ddply(mups[(mups$Age>input$Age[1]*365.25 & mups$Age<input$Age[2]*365.25),c(5,7:13)],~Muscle,here(summarise),Total=length(get(nam[7])),SA=length((which(get(nam[7])>0.001) )),SD=length(which(get(nam[8])>0)),PA=length(which(get(nam[9])>0)),PD=length(which(get(nam[10])>0)),MA=length(which(get(nam[11])>0)),MD=length(which(get(nam[12])>0)),Pol=length(which(get(nam[13])>0)))
+    #ddply(mups[(mups$Age>input$Age[1]*365.25 & mups$Age<input$Age[2]*365.25),c(5,7:13)],~Muscle,summarize,Total=length(get(paste(names(mups[7])))),SA=length(which(get(paste(names(mups[7])))>0)),SD=length(which(get(paste(names(mups[8])))>0)),PA=length(which(get(paste(names(mups[9])))>0)),PD=length(which(get(paste(names(mups[10])))>0)),MA=length(which(get(paste(names(mups[11])))>0)),MD=length(which(get(paste(names(mups[12])))>0)),Pol=length(which(get(paste(names(mups[13])))>0)))
   })
   
   output$emgControls <- renderUI({
@@ -193,7 +195,7 @@ shinyServer(function(input, output, session) {
     a<-ta[order(ta[i]),c(4,i)]
     a<-a[which(a[,2]>=ta[which(ta[,13+(i-6)*2]==ll),i]),]
     a<-a[which(a[,2]<=ta[which(ta[,13+(i-6)*2]==ul),i]),]
-    a[,1]<-a[,1]/365
+    a[,1]<-a[,1]/365.25
     return(a)
   })
   output$statTable<-renderTable({
@@ -261,7 +263,7 @@ shinyServer(function(input, output, session) {
   
   dataInputSNAP1<-reactive({
     if (input$logS) {snaps<-dataInputSNAPlog()} else {snaps<-dataInputSNAP()}
-    sn<-snaps[(snaps$Age>(input$AgeS[1]*365)&snaps$Age<(input$AgeS[2]*365)&snaps$Nerve==input$NerveS),] #select subgroup of age and muscle
+    sn<-snaps[(snaps$Age>(input$AgeS[1]*365.25)&snaps$Age<(input$AgeS[2]*365.25)&snaps$Nerve==input$NerveS),] #select subgroup of age and muscle
     for (i in 8:10){
       # i<-7
       sn<-sn[order(sn[,i]),]
@@ -276,7 +278,7 @@ shinyServer(function(input, output, session) {
   output$sumTableS <- renderTable({
     snaps<-dataInputSNAP()
     nam<-names(snaps)
-    return(ddply(snaps[(snaps$Age>input$AgeS[1]*365 & snaps$Age<input$AgeS[2]*365),c(6,8:10)],~Nerve,here(summarise),Total=length(get(nam[6])),Onset=length((which(get(nam[8])>0.001) )),Amp=length(which(get(nam[9])>0)),
+    return(ddply(snaps[(snaps$Age>input$AgeS[1]*365.25 & snaps$Age<input$AgeS[2]*365.25),c(6,8:10)],~Nerve,here(summarise),Total=length(get(nam[6])),Onset=length((which(get(nam[8])>0.001) )),Amp=length(which(get(nam[9])>0)),
                  CV=length(which(get(nam[10])>0))))
   })
   
@@ -365,7 +367,7 @@ shinyServer(function(input, output, session) {
     a<-ta[order(ta[i]),c(4,i)]
     a<-a[which(a[,2]>=ta[which(ta[,10+(i-7)*2]==ll),i]),]
     a<-a[which(a[,2]<=ta[which(ta[,10+(i-7)*2]==ul),i]),]
-    a[,1]<-a[,1]/365
+    a[,1]<-a[,1]/365.25
     return(a)
   })
   output$statTableS<-renderTable({
@@ -441,8 +443,8 @@ shinyServer(function(input, output, session) {
   
   dataInputCMAP1<-reactive({
     if (input$logM) {cmaps<-dataInputCMAPlog()} else {cmaps<-dataInputCMAP()}
-    cm<-cmaps[(cmaps$Age>(input$AgeM[1]*365)&cmaps$Age<(input$AgeM[2]*365)&cmaps$Nerve==input$NerveM),] #select subgroup of age and muscle
-    #cm<-cmaps[(cmaps$Age>(2*365)&cmaps$Age<(6*365)&cmaps$Nerve=="Medianus Motor"),] #select subgroup of age and muscle
+    cm<-cmaps[(cmaps$Age>(input$AgeM[1]*365.25)&cmaps$Age<(input$AgeM[2]*365.25)&cmaps$Nerve==input$NerveM),] #select subgroup of age and muscle
+    #cm<-cmaps[(cmaps$Age>(2*365.25)&cmaps$Age<(6*365.25)&cmaps$Nerve=="Medianus Motor"),] #select subgroup of age and muscle
     
     for (i in 8:13){
       # i<-7
@@ -459,7 +461,7 @@ shinyServer(function(input, output, session) {
   output$sumTableM <- renderTable({
     cmaps<-dataInputCMAP()
     nam<-names(cmaps)
-    return(ddply(cmaps[(cmaps$Age>input$AgeM[1]*365 & cmaps$Age<input$AgeM[2]*365),c(6,8:13)],~Nerve,here(summarise),Total=length(get(nam[6])),
+    return(ddply(cmaps[(cmaps$Age>input$AgeM[1]*365.25 & cmaps$Age<input$AgeM[2]*365.25),c(6,8:13)],~Nerve,here(summarise),Total=length(get(nam[6])),
                  Onset=length((which(get(nam[8])>0.001) )),
                  Amp=length(which(get(nam[9])>0)),
                  CV=length(which(get(nam[10])>0)),
@@ -554,7 +556,7 @@ shinyServer(function(input, output, session) {
     a<-ta[order(ta[i]),c(4,i)]
     a<-a[which(a[,2]>=ta[which(ta[,13+(i-7)*2]==ll),i]),]
     a<-a[which(a[,2]<=ta[which(ta[,13+(i-7)*2]==ul),i]),]
-    a[,1]<-a[,1]/365
+    a[,1]<-a[,1]/365.25
     return(a)
   })
   output$statTableM<-renderTable({
@@ -581,7 +583,215 @@ shinyServer(function(input, output, session) {
     
   })
   
+  ###### USER DATA code follows ###
   
+  
+  dataInputUSER<-reactive({
+    #Set path for files and a term specific for SNAPs in the filename
+    path<-input$path
+    extU<-input$usrstr
+    #path<-"/Users/adam/Dropbox/Research/Matthew Pitt/enorms";extU<-"USER"
+    
+    
+    #Get a list of the files in the above directory which include the term in extS
+    flsUSER<-list.files(path=path,full.names = T)[grep(extU,list.files(path))]
+    flsUSERsh<-list.files(path=path,full.names = F)[grep(extU,list.files(path))]
+
+    #Create and empty data frame ready to put the file data in, then load in the xls data
+    usrs<-head(readWorksheet(loadWorkbook(flsUSER[1],create=T),sheet=1),1)
+    numbfls<-head(data.frame(File= factor(1:length(flsUSER))),1)
+    usrs<-cbind(numbfls,usrs)[-1,]
+    for (i in 1:length(flsUSER)){
+      #i<-3
+      fl<-readWorksheet(loadWorkbook(flsUSER[i],create=T),sheet = 1)
+      fl<-cbind(File=factor(rep(i,length(fl[,1])),levels=1:length(flsUSER)),fl)
+      usrs<-rbind(usrs,fl)
+    } 
+    rm(list=c("i","flsUSER","path","extU","numbfls"))
+  
+    #Clean up the data frame
+    usrs[which(nchar(usrs[,2])>4),2]<-substr( usrs[which(nchar(usrs[,2])>4),2],1,4)
+    usrs[,2]<-as.numeric(usrs[,2])
+    usrs[which(nchar(usrs[,3])>4),3]<-substr( usrs[which(nchar(usrs[,3])>4),3],1,4)
+    usrs[,3]<-as.numeric(usrs[,3])
+    usrs[,1]<-factor(usrs[,1],labels=flsUSERsh)
+    return(usrs)
+  })
+  
+  dataInputUSERlog<-reactive({
+    usrs<-dataInputUSER()
+    usrs[,3]<-log(usrs[,3])
+    usrs[which(usrs[,3]==-Inf),3]<-0
+    return(usrs)
+  })
+  
+  dataInputUSER1<-reactive({
+    if (input$logU) {usrs<-dataInputUSERlog()} else {usrs<-dataInputUSER()}
+    tem<-list.files(path=path,full.names = F)[grep(extU,list.files(path))]
+    numb<-as.numeric(input$FileU)
+    sn<-usrs[(usrs$Age>input$AgeU[1])&(usrs$Age<input$AgeU[2])&(usrs$File==tem[numb]),] #select subgroup of age and muscle
+    sn<-sn[order(sn[,3]),]
+    sn[,(length(sn[1,])+1)]<-c(0,diff(sn[,3]))
+    sn[,(length(sn[1,])+1)]<-1:length(sn[,1])
+    sn[sn[,3]==0,(length(sn[1,]))]<-NA
+    
+    names(sn)[4:5]<-c("Difference","Order")
+    return(sn)
+  })
+  
+  output$sumTableU <- renderTable({
+    usrs<-dataInputUSER()
+    alls<-ddply(usrs[,c(1,2,3)],~File,here(summarise),
+                Total_In_File_____=length(get(nam[3])))
+    return(alls)
+  })
+  
+  output$sumTableU2 <- renderTable({
+    usrs<-dataInputUSER()
+    selct<-ddply(usrs[(usrs$Age>input$AgeU[1]) & (usrs$Age<input$AgeU[2]),c(1,2,3)],~File,here(summarise),
+                 TotalInAgeRange=length(get(nam[3])))
+    return(selct)
+  })
+  
+  output$udataSum <- renderTable({
+    return(input$file1)
+  })
+  
+  output$usrContr1 <- renderUI({
+     path<-input$path
+     extU<-input$usrstr
+     flsUSERsh<-list.files(path=path,full.names = F)[grep(extU,list.files(path))]
+#    alst<-list("File1"=1,"File2"=2,"File3"=3)
+     alst<-as.list(setNames(1:length(flsUSERsh), flsUSERsh))
+     selectInput("FileU", label = "Choose File for analysis:", 
+                choices = alst,
+                selected=1)
+  })
+  
+  output$usrContr <- renderUI({
+    sn<-dataInputUSER1()
+    i<-3
+    lo<-as.integer(sum(is.na(sn[,3])))
+    up<-as.integer(floor(length(sn[,3])*0.99))
+    
+    helpText("Select upper and lower limits:")
+    sliderInput ("LimitU",
+                 "Order number:",
+                 min = floor(lo/10)*10,
+                 max = ceiling(up/10)*10,
+                 value = c(lo+(up-lo)*0.25,up-(up-lo)*0.25))
+  })
+  
+  output$usrContr2 <- renderUI({
+    if (input$agedayU) {sliderInput ("AgeU",
+                                    "Age Range in days:",
+                                    min = 0,
+                                    max = 4000,
+                                    value = c(0,3000))} else {sliderInput ("AgeU",
+                                                                          "Age Range in years:",
+                                                                          min = 0,
+                                                                          max = 18,
+                                                                          value = c(0,18))}
+    
+  })
+  
+  output$cumPlotU<- renderPlot({
+    # i<-9; ll<-200; ul<-300
+    sn<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    nn<-(floor(length(sn[,5])*0.99)-sum(is.na(sn[,5])))
+    con<-sn[order(sn[,i]),][ul,i]-((sn[order(sn[,i]),][ul,i]-sn[order(sn[,i]),][ll,i])/(ul-ll))*ul
+    grad<-(sn[order(sn[,i]),][ul,i]-sn[order(sn[,i]),][ll,i])/(ul-ll)
+    plot<-ggplot(sn)+
+      geom_line(aes_string(x=names(sn)[5],y=names(sn)[i]))+
+      #ggtitle(paste(input$NerveS,"; Age ",input$AgeS[1]," to ",input$AgeS[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,13+(i-7)*2]==ll),i]," to ",sn[which(sn[,13+(i-6)*2]==ul),i],sep=""))+
+      ggtitle(paste(" Age ",input$AgeU[1]," to ",input$AgeU[2],"; n ",nn,"; order ",ll," to ",ul,"; measure ",sn[which(sn[,5]==ll),i]," to ",sn[which(sn[,5]==ul),i],sep=""))+
+      xlim(sum(is.na(sn[,5])),floor(length(sn[,5])*0.99))+
+      #ylim(sn[order(sn[,i]),][sum(is.na(sn[,10+(i-7)*2]))+2,i],sn[order(sn[,i]),][floor(length(sn[,10+(i-7)*2])*input$XrangeS)-2,i])+
+      ylim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,5]))+(length(sn[,5])*input$XrangeUL))+1,i],sn[order(sn[,i]),][floor(length(sn[,5])*input$XrangeU),i])+
+      geom_abline(intercept=con, slope=grad,col="red")+
+      geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash")+
+      geom_hline(yintercept = c(sn[which(sn[,5]==ll),i],sn[which(sn[,5]==ul),i]),colour="green", linetype = "longdash" )
+    return(plot) 
+  })
+  
+  output$diffPlotU<- renderPlot({
+    sn<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    nn<-(floor(length(sn[,5])*0.99)-sum(is.na(sn[,5])))
+    return(ggplot(sn)+
+             geom_point(aes_string(x=names(sn)[5],y=names(sn)[4]),col=2)+
+             xlim(sum(is.na(sn[,5])),floor(length(sn[,5])*0.99))+
+             ylim(min(sn[,4],na.rm=T),max(sn[order(sn[,4]),][1:floor(length(sn[,4])*input$YrangeU)-1,4]))+
+             geom_vline(xintercept = c(ll,ul), colour="blue", linetype = "longdash"))
+  })
+  
+  output$normPlotU<-renderPlot({
+    sn<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    ggplot(sn)+
+      stat_ecdf(aes_string(x=names(sn)[i]),col=2)+
+      geom_vline(xintercept = c(sn[which(sn[,5]==ll),i],sn[which(sn[,5]==ul),i]),colour="green", linetype = "longdash" )+
+      xlim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,5]))+(length(sn[,5])*input$XrangeSL))+1,i],sn[order(sn[,i]),][floor(length(sn[,5])*input$XrangeU),i])
+    
+  })
+  
+  output$normPlot2U<-renderPlot({
+    sn<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    ggplot(sn)+
+      geom_histogram(aes_string(x=names(sn)[i],y = "..density.."),fill="blue",alpha=0.5)+
+      stat_function(
+        fun = dnorm,
+        args=with(sn, c(mean = mean(eval(parse(text=names(sn)[i]))), sd = sd(eval(parse(text=names(sn)[i]))))),
+        colour="red")+
+      geom_vline(xintercept = c(sn[which(sn[,5]==ll),i],sn[which(sn[,5]==ul),i]),colour="green", linetype = "longdash" )+
+      xlim(sn[order(sn[,i]),][ceiling(sum(is.na(sn[,5]))+(length(sn[,5])*input$XrangeUL))+1,i],sn[order(sn[,i]),][floor(length(sn[,5])*input$XrangeU),i])
+  })
+  
+  # new for stats
+  output$analyTableU<-renderTable({
+    ta<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    a<-ta[order(ta[i]),c(2,i)]
+    a<-a[which(a[,2]>=ta[which(ta[,5]==ll),i]),]
+    a<-a[which(a[,2]<=ta[which(ta[,5]==ul),i]),]
+    return(a)
+  })
+ 
+  output$statTableU<-renderTable({
+    ta<-dataInputUSER1()
+    i<-3
+    ul<-input$LimitU[2]
+    ll<-input$LimitU[1]
+    a<-ta[order(ta[i]),c(2,i)]
+    a<-a[which(a[,2]>=ta[which(ta[,5]==ll),i]),]
+    a<-a[which(a[,2]<=ta[which(ta[,5]==ul),i]),]
+    b<-resultstable[1,]
+    b$Modality<-as.factor("User input")
+    b$Measure<-"Variable"
+    b$AgeLower<-input$AgeU[1]
+    b$AgeUpper<-input$AgeU[2]
+    b$Mean<-mean(a[,2])
+    b$Var<-var(a[,2])
+    b$SD<-sd(a[,2])
+    b$LowerSel<-ta[which(ta[,5]==ll),i]
+    b$UpperSel<-ta[which(ta[,5]==ul),i]
+    b$N<-length(a[,2])
+    b$NerveOrMuscle<-"User input"
+    return(b)
+    
+  })
   #####
   
   output$currentTime <- renderText({
