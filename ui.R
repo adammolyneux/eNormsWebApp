@@ -15,7 +15,7 @@ shinyUI(
                         sidebarLayout(
                           sidebarPanel(
                             textInput("path", label = "Enter directory of XLS files", 
-                                      value = "/Users/adam/Dropbox/Research/Matthew Pitt/enorms"),
+                                      value = "/"),
                             textInput("emgstr", label = "Enter text specific for EMG files:", 
                                       value = "EMG"),
                             textInput("sensstr", label = "Enter text specific for sensory files:", 
